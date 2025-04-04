@@ -13,3 +13,50 @@ unsafe extern "C" {
         szOutFilePath: *const ::std::os::raw::c_char,
     );
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct DecodeProc {
+    pub _address: u8,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of DecodeProc"][::std::mem::size_of::<DecodeProc>() - 1usize];
+    ["Alignment of DecodeProc"][::std::mem::align_of::<DecodeProc>() - 1usize];
+};
+unsafe extern "C" {
+    #[link_name = "\u{1}_ZN10DecodeProc7getNextEv"]
+    pub fn DecodeProc_getNext(this: *mut DecodeProc) -> *mut ::std::os::raw::c_char;
+}
+unsafe extern "C" {
+    #[link_name = "\u{1}_ZN10DecodeProcC1EiPKc12OutputFormatS1_"]
+    pub fn DecodeProc_DecodeProc(
+        this: *mut DecodeProc,
+        cuDevice: ::std::os::raw::c_int,
+        szMediaUri: *const ::std::os::raw::c_char,
+        eOutputFormat: OutputFormat,
+        szOutFilePath: *const ::std::os::raw::c_char,
+    );
+}
+impl DecodeProc {
+    #[inline]
+    pub unsafe fn getNext(&mut self) -> *mut ::std::os::raw::c_char {
+        DecodeProc_getNext(self)
+    }
+    #[inline]
+    pub unsafe fn new(
+        cuDevice: ::std::os::raw::c_int,
+        szMediaUri: *const ::std::os::raw::c_char,
+        eOutputFormat: OutputFormat,
+        szOutFilePath: *const ::std::os::raw::c_char,
+    ) -> Self {
+        let mut __bindgen_tmp = ::std::mem::MaybeUninit::uninit();
+        DecodeProc_DecodeProc(
+            __bindgen_tmp.as_mut_ptr(),
+            cuDevice,
+            szMediaUri,
+            eOutputFormat,
+            szOutFilePath,
+        );
+        __bindgen_tmp.assume_init()
+    }
+}

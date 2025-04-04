@@ -46,12 +46,6 @@ void DecodeProc(CUdevice cuDevice, const char *szMediaUri, OutputFormat eOutputF
         throw std::invalid_argument(err.str());
     }
     CUstream cuStream = NULL;
-    
-    // if(bExtStream)
-    // {
-    //     ck(cuCtxPushCurrent(cuContext));
-    //     ck(cuStreamCreate(&cuStream, CU_STREAM_DEFAULT));
-    // }
     ck(cuInit(0));
     CUcontext cuContext = NULL;
     createCudaContext(&cuContext, 0, 0);
@@ -79,8 +73,8 @@ void DecodeProc(CUdevice cuDevice, const char *szMediaUri, OutputFormat eOutputF
         if (!nFrame && nFrameReturned)
             LOG(INFO) << dec.GetVideoInfo();
         
-        bDecodeOutSemiPlanar = (dec.GetOutputFormat() == cudaVideoSurfaceFormat_NV12) || (dec.GetOutputFormat() == cudaVideoSurfaceFormat_P016)
-                               || (dec.GetOutputFormat() == cudaVideoSurfaceFormat_NV16) || (dec.GetOutputFormat() == cudaVideoSurfaceFormat_P216);
+        // bDecodeOutSemiPlanar = (dec.GetOutputFormat() == cudaVideoSurfaceFormat_NV12) || (dec.GetOutputFormat() == cudaVideoSurfaceFormat_P016)
+                               // || (dec.GetOutputFormat() == cudaVideoSurfaceFormat_NV16) || (dec.GetOutputFormat() == cudaVideoSurfaceFormat_P216);
         
         for (int i = 0; i < nFrameReturned; i++) {
             pFrame = dec.GetFrame();
@@ -134,5 +128,26 @@ void DecodeProc(CUdevice cuDevice, const char *szMediaUri, OutputFormat eOutputF
     fpOut.close();
 }
 
+DecodeProc::DecodeProc(int cuDevice, const char *szMediaUri,
+             enum OutputFormat eOutputFormat, const char *szOutFilePath) :demuxer(szMediaUri),dec(cuContext, false, FFmpeg2NvCodecId(demuxer.GetVideoCodec()), false, false, &cropRect, &resizeDim, bExtractUserSEIMessage, 0, 0, 1000, false, decsurf, cuStream)
+{
+    std::cout << "GPU is being used\n";
+    ck(cuInit(0));
+    createCudaContext(&cuContext, 0, 0);
+}
 
+char* DecodeProc::getNext() {
+    if (nFrameReturned == 0) {
+        demuxer.Demux(&pVideo, &nVideoBytes);
+        nFrameReturned = dec.Decode(pVideo, nVideoBytes);
+        nFrame += nFrameReturned;
+        if (!nVideoBytes) {
+            return nullptr;
+        }
+    }
+       
+    pFrame = dec.GetFrame();
+    nFrameReturned--;
+    return reinterpret_cast<char*>(pFrame);        
+}
 
