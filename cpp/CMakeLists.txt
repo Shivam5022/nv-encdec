@@ -11,6 +11,7 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_INSTALL_PREFIX $ENV{HOME}/.local)
 
@@ -101,7 +102,7 @@ endif()
 file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 # Print the sources to the console
-# message(STATUS "Sources: ${SOURCES}")
+message(STATUS "Sources: ${SOURCES}")
 
 
 # set(NV_ENC_SOURCES
@@ -110,8 +111,8 @@ file(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 #     ${NV_DEC_DIR}/NvDecoder.cpp
 # )
 
-set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/)
-# message(STATUS "HEADERS: ${HEADERS}")
+file(GLOB HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h ${CMAKE_CURRENT_SOURCE_DIR}/nvcodec_interface/*.h)
+message(STATUS "HEADERS: ${HEADERS}")
 
 # set(NV_ENC_CUDA_UTILS
 #     ${NVCODEC_UTILS_DIR}/ColorSpace.cu
@@ -140,7 +141,7 @@ if(WIN32)
 endif()
 
 # Create the library target without main.cpp (for static or shared library)
-# cuda_add_executable(${PROJECT_NAME}  ${APP_SOURCES} ${NV_ENC_SOURCES} ${NV_ENC_CUDA_UTILS} ${NV_ENC_HDRS} ${NV_DEC_HDRS} ${NV_FFMPEG_HDRS})
+cuda_add_executable(main ${SOURCES} ${HEADERS})
 cuda_add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 
 # CUDA settings
@@ -162,6 +163,9 @@ endif()
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME} ${CUDA_CUDA_LIBRARY} ${CMAKE_DL_LIBS} ${NVENCODEAPI_LIB} ${CUVID_LIB}
+    ${AVCODEC_LIB} ${AVFORMAT_LIB} ${AVUTIL_LIB} ${SWRESAMPLE_LIB})
+
+target_link_libraries(main ${CUDA_CUDA_LIBRARY} ${CMAKE_DL_LIBS} ${NVENCODEAPI_LIB} ${CUVID_LIB}
     ${AVCODEC_LIB} ${AVFORMAT_LIB} ${AVUTIL_LIB} ${SWRESAMPLE_LIB})
 
 # Install library

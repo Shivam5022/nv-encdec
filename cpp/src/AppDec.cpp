@@ -15,7 +15,8 @@
 *  HDR video streaming is also demonstrated in this application.
 */
 
-#include <cuda.h>
+// #include <cuda.h>
+#include <codecvt>
 #include <iostream>
 #include <exception>
 #include <stdexcept>
@@ -35,7 +36,7 @@ static std::vector<std::string> vstrOutputFormatName =
     "native", "bgra", "bgra64"
 };
 
-void DecodeProc(CUdevice cuDevice, const char *szMediaUri, OutputFormat eOutputFormat, const char *szOutFilePath)
+void DecodeProc2(CUdevice cuDevice, const char *szMediaUri, OutputFormat eOutputFormat, const char *szOutFilePath)
 {
     std::cout << "SV and Satyam are using GPU\n";
     std::ofstream fpOut(szOutFilePath, std::ios::out | std::ios::binary);
@@ -69,7 +70,10 @@ void DecodeProc(CUdevice cuDevice, const char *szMediaUri, OutputFormat eOutputF
     bool bDecodeOutSemiPlanar = false;
     do {
         demuxer.Demux(&pVideo, &nVideoBytes);
+        std::cout << nVideoBytes << " bytes are returned by demuxer\n";
         nFrameReturned = dec.Decode(pVideo, nVideoBytes);
+        std::cout << nFrameReturned << std::endl;
+        break;
         if (!nFrame && nFrameReturned)
             LOG(INFO) << dec.GetVideoInfo();
         
@@ -129,25 +133,34 @@ void DecodeProc(CUdevice cuDevice, const char *szMediaUri, OutputFormat eOutputF
 }
 
 DecodeProc::DecodeProc(int cuDevice, const char *szMediaUri,
-             enum OutputFormat eOutputFormat, const char *szOutFilePath) :demuxer(szMediaUri),dec(cuContext, false, FFmpeg2NvCodecId(demuxer.GetVideoCodec()), false, false, &cropRect, &resizeDim, bExtractUserSEIMessage, 0, 0, 1000, false, decsurf, cuStream)
+             enum OutputFormat eOutputFormat, const char *szOutFilePath) 
 {
-    std::cout << "GPU is being used\n";
+    std::cout << "Shivam and Satyam have fixed CPP code\n";
+    CUstream cuStream = NULL;
     ck(cuInit(0));
+    CUcontext cuContext = NULL;
     createCudaContext(&cuContext, 0, 0);
+    demuxer = std::unique_ptr<FFmpegDemuxer>(new FFmpegDemuxer(szMediaUri));
+    dec = std::unique_ptr<NvDecoder>(new NvDecoder(cuContext, false, FFmpeg2NvCodecId(demuxer->GetVideoCodec()), false, false, &cropRect, &resizeDim, bExtractUserSEIMessage, 0, 0, 1000, false, decsurf, cuStream));
 }
 
 char* DecodeProc::getNext() {
-    if (nFrameReturned == 0) {
-        demuxer.Demux(&pVideo, &nVideoBytes);
-        nFrameReturned = dec.Decode(pVideo, nVideoBytes);
-        nFrame += nFrameReturned;
-        if (!nVideoBytes) {
-            return nullptr;
+    while(1) {
+        if (nFrameReturned == 0) {
+            demuxer->Demux(&pVideo, &nVideoBytes);
+            if (!nVideoBytes) {
+                return nullptr;
+            }
+            nFrameReturned = dec->Decode(pVideo, nVideoBytes);
+            nFrame += nFrameReturned;
+        }
+       
+        if (nFrameReturned) {
+            pFrame = dec->GetFrame();
+            nFrameReturned--;
+            return reinterpret_cast<char*>(pFrame);        
         }
     }
-       
-    pFrame = dec.GetFrame();
-    nFrameReturned--;
-    return reinterpret_cast<char*>(pFrame);        
+
 }
 

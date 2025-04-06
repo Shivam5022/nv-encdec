@@ -213,6 +213,7 @@ int NvDecoder::GetOperatingPoint(CUVIDOPERATINGPOINTINFO *pOPInfo)
 */
 int NvDecoder::HandleVideoSequence(CUVIDEOFORMAT *pVideoFormat)
 {
+    std::cout << "Inside the callback sequence\n";
     START_TIMER
     m_videoInfo.str("");
     m_videoInfo.clear();
@@ -574,6 +575,7 @@ int NvDecoder::setReconfigParams(const Rect *pCropRect, const Dim *pResizeDim)
 *  0: fail, >=1: succeeded
 */
 int NvDecoder::HandlePictureDecode(CUVIDPICPARAMS *pPicParams) {
+    std::cout << "Inside the callback\n";
     if (!m_hDecoder)
     {
         NVDEC_THROW_ERROR("Decoder not initialized.", CUDA_ERROR_NOT_INITIALIZED);
@@ -639,6 +641,7 @@ int NvDecoder::HandlePictureDecode(CUVIDPICPARAMS *pPicParams) {
 *  0: fail, >=1: succeeded
 */
 int NvDecoder::HandlePictureDisplay(CUVIDPARSERDISPINFO *pDispInfo) {
+    std::cout << "Inside the callback display\n";
     CUVIDPROCPARAMS videoProcessingParameters = {};
     videoProcessingParameters.progressive_frame = pDispInfo->progressive_frame;
     videoProcessingParameters.second_field = pDispInfo->repeat_first_field + 1;
