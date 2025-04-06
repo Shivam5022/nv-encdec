@@ -1,2 +1,4 @@
 /target
 AppEnc.cpp
+output
+compile_commands.json
