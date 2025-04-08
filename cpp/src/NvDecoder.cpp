@@ -213,7 +213,7 @@ int NvDecoder::GetOperatingPoint(CUVIDOPERATINGPOINTINFO *pOPInfo)
 */
 int NvDecoder::HandleVideoSequence(CUVIDEOFORMAT *pVideoFormat)
 {
-    std::cout << "Inside the callback sequence\n";
+    // std::cout << "Inside the callback sequence\n";
     START_TIMER
     m_videoInfo.str("");
     m_videoInfo.clear();
@@ -575,7 +575,7 @@ int NvDecoder::setReconfigParams(const Rect *pCropRect, const Dim *pResizeDim)
 *  0: fail, >=1: succeeded
 */
 int NvDecoder::HandlePictureDecode(CUVIDPICPARAMS *pPicParams) {
-    std::cout << "Inside the callback\n";
+    // std::cout << "Inside the callback\n";
     if (!m_hDecoder)
     {
         NVDEC_THROW_ERROR("Decoder not initialized.", CUDA_ERROR_NOT_INITIALIZED);
@@ -641,7 +641,7 @@ int NvDecoder::HandlePictureDecode(CUVIDPICPARAMS *pPicParams) {
 *  0: fail, >=1: succeeded
 */
 int NvDecoder::HandlePictureDisplay(CUVIDPARSERDISPINFO *pDispInfo) {
-    std::cout << "Inside the callback display\n";
+    // std::cout << "Inside the callback display\n";
     CUVIDPROCPARAMS videoProcessingParameters = {};
     videoProcessingParameters.progressive_frame = pDispInfo->progressive_frame;
     videoProcessingParameters.second_field = pDispInfo->repeat_first_field + 1;
@@ -730,6 +730,11 @@ int NvDecoder::HandlePictureDisplay(CUVIDPARSERDISPINFO *pDispInfo) {
     CUdeviceptr dpSrcFrame = 0;
     unsigned int nSrcPitch = 0;
     CUDA_DRVAPI_CALL(cuCtxPushCurrent(m_cuContext));
+    
+    // NOTE SHIVAM: user calls this function to get the CUDA device pointer and pitch of the output surfacr that holds the decoded
+    // and post-processed frame.
+    // LINK: https://codeofrob.com/entries/decoding-h264-with-nvidia.html
+    
     NVDEC_API_CALL(cuvidMapVideoFrame(m_hDecoder, pDispInfo->picture_index, &dpSrcFrame,
         &nSrcPitch, &videoProcessingParameters));
 
@@ -768,6 +773,8 @@ int NvDecoder::HandlePictureDisplay(CUVIDPARSERDISPINFO *pDispInfo) {
         }
         pDecodedFrame = m_vpFrame[m_nDecodedFrame - 1];
     }
+
+    // std::cout << (void*) pDecodedFrame << '\n';
 
     // Copy luma plane
     CUDA_MEMCPY2D m = { 0 };

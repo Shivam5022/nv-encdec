@@ -30,9 +30,9 @@ mod nvencdec;
 // }
 
 fn main() {
-    let device_id: i32 = 0; // Change this according to your use case
+    let device_id: i32 = 0;
     let media_uri = "/home/satyam/dev/nv_encdec/input.mp4";
-    let output_format = nvencdec::OutputFormat_bgra64; // Use an appropriate format from your bindings
+    let output_format = nvencdec::OutputFormat_bgra64;
     let output_file_path = "/home/satyam/dev/nv_encdec/output";
 
     let c_media_uri = CString::new(media_uri).expect("CString::new failed");

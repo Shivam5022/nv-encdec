@@ -135,13 +135,17 @@ void DecodeProc2(CUdevice cuDevice, const char *szMediaUri, OutputFormat eOutput
 DecodeProc::DecodeProc(int cuDevice, const char *szMediaUri,
              enum OutputFormat eOutputFormat, const char *szOutFilePath) 
 {
-    std::cout << "Shivam and Satyam have fixed CPP code\n";
+    std::cout << "Shivam and Satyam can't fix the Rust code\n";
     CUstream cuStream = NULL;
     ck(cuInit(0));
     CUcontext cuContext = NULL;
     createCudaContext(&cuContext, 0, 0);
     demuxer = std::unique_ptr<FFmpegDemuxer>(new FFmpegDemuxer(szMediaUri));
-    dec = std::unique_ptr<NvDecoder>(new NvDecoder(cuContext, false, FFmpeg2NvCodecId(demuxer->GetVideoCodec()), false, false, &cropRect, &resizeDim, bExtractUserSEIMessage, 0, 0, 1000, false, decsurf, cuStream));
+    dec = std::unique_ptr<NvDecoder>(new NvDecoder(cuContext, true,
+                                                   FFmpeg2NvCodecId(demuxer->GetVideoCodec()),
+                                                   false, false, &cropRect, &resizeDim,
+                                                   bExtractUserSEIMessage, 0, 0, 1000,
+                                                   false, decsurf, cuStream));
 }
 
 char* DecodeProc::getNext() {
@@ -149,6 +153,7 @@ char* DecodeProc::getNext() {
         if (nFrameReturned == 0) {
             demuxer->Demux(&pVideo, &nVideoBytes);
             if (!nVideoBytes) {
+                std::cout << "Total frame decoded: " << nFrame << std::endl;
                 return nullptr;
             }
             nFrameReturned = dec->Decode(pVideo, nVideoBytes);
